@@ -38,7 +38,7 @@ X.columns=Xc
 #standardize
 standardized_X = preprocessing.scale(X)
 
-
+#build up model
 models = {
     "knn": KNeighborsClassifier(n_neighbors=1),
     "naive_bayes": GaussianNB(),
