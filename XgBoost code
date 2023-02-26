@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Sun Feb  5 15:33:55 2023
+Created on Sun Feb 26 15:36:18 2023
 
 @author: ming
 """
 
-#导入所需要的包
+
+
+#import packages
 from sklearn.metrics import precision_score
-from sklearn.model_selection import train_test_split
+
 import xgboost as xgb
 import numpy as np
 import pandas as pd
@@ -19,14 +21,21 @@ from sklearn.metrics import classification_report
 from sklearn.model_selection import GridSearchCV #网格搜索
 import matplotlib.pyplot as plt#可视化
 import seaborn as sns#绘图包
+from sklearn.model_selection import train_test_split
 
-# 用pandas读入数据
-X=pd.read_csv(r"/Users/ming/Downloads/Xset2.csv")
+
+# import data
+X=pd.read_csv(r"/Users/ming/Downloads/Xset3.csv")
 Y=pd.read_csv(r"/Users/ming/Downloads/Y.csv")
+
+
+
 from imblearn.over_sampling import RandomOverSampler
 ros = RandomOverSampler(random_state=0)
 X_resampled, y_resampled = ros.fit_resample(X, Y)
-# 做数据切分
+X_resampled.info()
+
+# split data
 trainX, testX, trainY, testY = train_test_split(X_resampled, y_resampled, random_state=3, test_size=0.2)
 
 model=xgb.XGBClassifier()
@@ -34,14 +43,18 @@ model=xgb.XGBClassifier()
 model.fit(trainX,trainY)
 # 预测值
 y_pred = model.predict(testX)
+
+
+
+
  
- 
-'''
-评估指标
-'''
+
+
+#评估指标
+
 # 求出预测和真实一样的数目
 true = np.sum(y_pred == testY.values.tolist())
-print('预测对的结果数目为：', true)
+print('the right number of prediction：', true)
 print('预测错的的结果数目为：', testY.shape[0]-true)
 # 评估指标
 from sklearn.metrics import accuracy_score,precision_score,recall_score,f1_score,cohen_kappa_score
@@ -56,7 +69,7 @@ print('预测数据的F1值为：',
 print('预测数据的Cohen’s Kappa系数为：',
       cohen_kappa_score(testY,y_pred))
 # 打印分类报告
-print('预测数据的分类报告为：',
+print('the evaluation report：',
       classification_report(testY,y_pred))
 
 from xgboost import plot_importance
@@ -64,7 +77,8 @@ from xgboost import plot_importance
 plt.rcParams["figure.figsize"] = (14, 8)
 plot_importance(model)
 
- 
+
+
 # ROC曲线、AUC
 from sklearn.metrics import precision_recall_curve
 from sklearn import metrics
@@ -86,3 +100,12 @@ plt.xlabel('False Positive Rate') #横坐标是fpr
 plt.ylabel('True Positive Rate')  #纵坐标是tpr
 plt.title('Receiver operating characteristic example')
 plt.show()
+
+y_pred_prob1=model.predict_proba(X)[:,1]
+y_pred1=model.predict(X)
+
+#5-fold cross validation
+from sklearn.model_selection import cross_val_score
+scores = cross_val_score(model, X_resampled, y_resampled, cv=10)
+print("%0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scores.std()))
+
